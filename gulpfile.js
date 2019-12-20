@@ -10,7 +10,8 @@ let sourcemaps = require('gulp-sourcemaps');
 const minify = require('gulp-minify');
 const eslint = require('gulp-eslint');
 let tslint = require('gulp-tslint');
-
+const validator = require('gulp-html');
+ 
 
 gulp.task('tslint', () => {
     return gulp.src('./ts/*.ts')
@@ -24,7 +25,8 @@ gulp.task('ts-to-js', function() {
   return gulp.src('./ts/*.ts')
   .pipe(sourcemaps.init())
   .pipe(ts({
-      noImplicitAny: true
+      noImplicitAny: true,
+      target: 'ES6'
   }))
   .pipe(sourcemaps.write())
   .pipe(gulp.dest('./js'));
@@ -59,10 +61,18 @@ gulp.task('minify-css',() => {
     .pipe(gulp.dest('./dist/'));
 });
 
+gulp.task('html', () => {
+  return gulp.src('./index.html')
+    .pipe(validator({
+      Werror: true
+    }));
+});
+
 gulp.task('ts-to-min-js', gulp.series('tslint', 'ts-to-js', 'minify-js', 'eslint'));
 gulp.task('scss-to-min-css', gulp.series('scss', 'minify-css'));
 
 gulp.task('watch', function () {
     gulp.watch('./scss/*.scss',  gulp.series('scss-to-min-css'));
     gulp.watch('./ts/*.ts', gulp.series('ts-to-min-js'));
+    gulp.watch('./index.html', gulp.series('html'));
 });

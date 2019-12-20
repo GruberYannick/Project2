@@ -1,0 +1,25 @@
+.grid {
+    margin: 0 auto;
+    width: 80vw;
+    max-width: 80vh;
+    height: 80vw;
+    max-height: 80vh;
+    font-size: 1rem;
+}
+.row {
+    display: flex;
+}
+.box {
+    background: tomato;
+    margin: 5px;
+    color: white;
+    font-weight: bold;
+    flex: 1 0 auto;
+    position: relative;
+}
+.box:after {
+    content: "";
+    float:left;
+    display: block;
+    padding-top: 100%;
+}
