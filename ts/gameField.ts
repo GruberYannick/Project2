@@ -1,9 +1,17 @@
+enum FieldState {
+  Unset = 0,
+  Alive,
+  Dead,
+}
+
 class GameField extends HTMLElement {
   private columns: number;
   private rows: number;
 
   private viewportWidth: number;
   private viewportHeight: number;
+
+  private gameField: number[][];
 
   constructor() {
     super();
@@ -19,6 +27,8 @@ class GameField extends HTMLElement {
     this.columns = Math.max(10, this.columns);
     this.rows = Math.max(10, this.rows);
 
+    this.gameField = this.createGameField();
+
     this.setViewportValues();
     const size = Math.min(this.viewportWidth / this.columns, this.viewportHeight / this.rows);
 
@@ -27,27 +37,42 @@ class GameField extends HTMLElement {
 
     const gridElem = this.createShadowGameField();
     this.shadowRoot.appendChild(gridElem);
+
+    this.viewportUpdated();
   }
 
   public disconnectedCallback() {
-    console.log("2 Custom square element added to page.");
+    return;
   }
 
   public adoptedCallback() {
-    console.log("3 Custom square element added to page.");
+    return;
   }
 
   public attributeChangedCallback(name: any, oldValue: any, newValue: any) {
-    console.log("4 Custom square element added to page.");
+    return;
   }
 
   static get observedAttributes(): any {
-    return ["columns", "rows"];
+    return [];
+  }
+
+  private createGameField(): number[][] {
+    const arr: number[][] = [];
+
+    for (let i: number = 0; i < this.rows; i++) {
+      arr[i] = [];
+      for (let j: number = 0; j < this.columns; j++) {
+        arr[i][j] = FieldState.Unset;
+      }
+    }
+
+    return arr;
   }
 
   private setViewportValues() {
-    this.viewportWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-    this.viewportHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+    this.viewportWidth = Math.min(document.documentElement.clientWidth, window.innerWidth);
+    this.viewportHeight = Math.min(document.documentElement.clientHeight, window.innerHeight);
   }
 
   private createShadowGameField() {
@@ -58,7 +83,10 @@ class GameField extends HTMLElement {
       rowElem.className += "row";
       for (let column = 0; column < this.columns; column++) {
         const boxElem = document.createElement("div");
+        boxElem.setAttribute("row", row.toString());
+        boxElem.setAttribute("column", column.toString());
         boxElem.className += "box";
+        boxElem.addEventListener("click", (e) => this.fieldClickedHandler(row, column));
         rowElem.appendChild(boxElem);
       }
       gridElem.appendChild(rowElem);
@@ -67,13 +95,17 @@ class GameField extends HTMLElement {
     return gridElem;
   }
 
+  private fieldClickedHandler(row: number, column: number): any {
+    return;
+  }
+
   private createShadowCss(size: number) {
     return `<style>
     .box {
       box-sizing: border-box;
       width: ${size}px;
       height: ${size}px;
-      background-color: red;
+      background-color: white;
       float: left;
       background-clip: content-box;
       padding: 1px;
@@ -91,7 +123,6 @@ class GameField extends HTMLElement {
       box-sizing: border-box;
       width: ${size * this.columns}px;
       height: ${size * this.rows}px;
-      margin: auto;
     }`;
   }
 
@@ -121,6 +152,8 @@ class GameField extends HTMLElement {
 
     const gridElem = this.createShadowGameField();
     this.shadowRoot.appendChild(gridElem);
+
+    this.viewportUpdated();
   }
 
   private viewportUpdated() {

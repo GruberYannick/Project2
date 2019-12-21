@@ -20,11 +20,48 @@
 
 <body>
   <main>
-    <label for="width">Width:</label>
-    <input id="width" type="text" value="60">
-    <label for="height">Height:</label>
-    <input id="height" type="text" value="25">
-    <button id="setSize">Set Size</button>
+    <div>
+      <div class="form-row m-1">
+        <div class="form-group col-md-12">
+          <button id="start" class="btn btn-primary col-md-1">Start</button>
+          <button id="pause" class="btn btn-primary col-md-1">Pause</button>
+          <button id="clear" class="btn btn-primary col-md-1">Clear</button>
+        </div>
+      </div>
+
+      <div class="form-row m-1">
+        <div class="form-group col-md-5">
+          <label for="width">Width:</label>
+          <input type="text" class="form-control" name="width" id="width" value="60" aria-describedby="widthHelpId">
+          <small id="widthHelpId" class="form-text text-muted">Must be at least 10</small>
+        </div>
+
+        <div class="form-group col-md-5">
+          <label for="height">Height:</label>
+          <input type="text" class="form-control" name="height" id="height" value="25" aria-describedby="heightHelpId">
+          <small id="heightHelpId" class="form-text text-muted">Must be at least 10</small>
+        </div>
+
+        <button id="setSize" class="btn btn-primary col-md-1">Set Size</button>
+      </div>
+
+      <div class="form-row m-1">
+        <div class="form-group col-md-10">
+          <label for="loadLevelTextArea">Level:</label>
+          <textarea id="loadLevelTextArea" class="form-control" rows="10"></textarea>
+        </div>
+
+        <button id="loadLevelButton" class="btn btn-primary col-md-1">Load Level</button>
+      </div>
+
+      <div class="form-row m-1">
+        <div class="form-group col-md-12">
+          <label>Generations: </label>
+          <label id="generations">0</label>
+        </div>
+      </div>
+    </div>
+
     <cgol-pitch width="60" height="25"></cgol-pitch>
   </main>
 </body>
