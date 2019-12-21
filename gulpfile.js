@@ -34,9 +34,11 @@ gulp.task('ts-to-js', function() {
 
 gulp.task('minify-js', function() {
   return gulp.src('./js/*.js')
+    .pipe(sourcemaps.init())
     .pipe(minify({
       noSource: true
     }))
+    .pipe(sourcemaps.write())
     .pipe(gulp.dest('./dist/'))
 });
 
@@ -61,15 +63,16 @@ gulp.task('minify-css',() => {
     .pipe(gulp.dest('./dist/'));
 });
 
+
 gulp.task('html', () => {
   return gulp.src('./index.html')
     .pipe(validator({
       Werror: true
     }));
 });
-
 gulp.task('ts-to-min-js', gulp.series('tslint', 'ts-to-js', 'minify-js', 'eslint'));
 gulp.task('scss-to-min-css', gulp.series('scss', 'minify-css'));
+
 
 gulp.task('watch', function () {
     gulp.watch('./scss/*.scss',  gulp.series('scss-to-min-css'));

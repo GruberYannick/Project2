@@ -56,14 +56,51 @@
 
       <div class="form-row m-1">
         <div class="form-group col-lg-12">
-          <label>Generations: </label>
-          <label id="generations">0</label>
+          <label>Generation: </label>
+          <label id="generation">1</label>
         </div>
       </div>
     </div>
 
-    <cgol-pitch width="60" height="25"></cgol-pitch>
+    <cgol-pitch id="cgol" width="60" height="25" start="false" pause="false" clear="false"></cgol-pitch>
   </main>
+
+  <script>
+    var width = 60;
+    var height = 25;
+
+    document.getElementsByTagName("cgol-pitch")[0].addEventListener("generationUpdatedEvent", (e) => {
+      document.getElementById("generation").textContent = e.detail;
+    });
+
+    document.getElementsByTagName("cgol-pitch")[0].addEventListener("widthUpdatedEvent", (e) => {
+      (document.getElementById("width")).value = e.detail;
+    });
+
+    document.getElementsByTagName("cgol-pitch")[0].addEventListener("heightUpdatedEvent", (e) => {
+      (document.getElementById("height")).value = e.detail;
+    });
+
+    document.getElementById("setSize").onclick = setSize;
+
+    function setSize() {
+      let cgol = document.getElementById("cgol");
+
+      if (this.width !== (document.getElementById("width")).value) {
+        width = (document.getElementById("width")).value;
+        cgol.setAttribute("width", width);
+      }
+
+      if (this.height !== (document.getElementById("height")).value) {
+        height = (document.getElementById("height")).value;
+        cgol.setAttribute("height", height);
+      }
+    }
+
+    document.getElementById("start").onclick = function () { document.getElementById("cgol").setAttribute("start", null); };
+    document.getElementById("pause").onclick = function () { document.getElementById("cgol").setAttribute("pause", null); };
+    document.getElementById("clear").onclick = function () { document.getElementById("cgol").setAttribute("clear", null); };
+</script>
 </body>
 
 </html>
