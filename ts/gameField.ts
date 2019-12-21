@@ -33,10 +33,7 @@ class GameField extends HTMLElement {
     const size = Math.min(this.viewportWidth / this.columns, this.viewportHeight / this.rows);
 
     this.attachShadow({ mode: "open" });
-    this.shadowRoot.innerHTML = this.createShadowCss(size);
-
-    const gridElem = this.createShadowGameField();
-    this.shadowRoot.appendChild(gridElem);
+    this.updateShadowDom(size);
 
     this.viewportUpdated();
   }
@@ -68,6 +65,12 @@ class GameField extends HTMLElement {
     }
 
     return arr;
+  }
+
+  private updateShadowDom(size: number) {
+    this.shadowRoot.innerHTML = this.createShadowCss(size);
+    const gridElem = this.createShadowGameField();
+    this.shadowRoot.appendChild(gridElem);
   }
 
   private setViewportValues() {
@@ -146,12 +149,11 @@ class GameField extends HTMLElement {
     (document.getElementById("width") as HTMLInputElement).value = this.columns.toString();
     (document.getElementById("height") as HTMLInputElement).value = this.rows.toString();
 
+    this.gameField = this.createGameField();
+
     const size = Math.min(this.viewportWidth / this.columns, this.viewportHeight / this.rows);
 
-    this.shadowRoot.innerHTML = this.createShadowCss(size);
-
-    const gridElem = this.createShadowGameField();
-    this.shadowRoot.appendChild(gridElem);
+    this.updateShadowDom(size);
 
     this.viewportUpdated();
   }
