@@ -36,8 +36,9 @@
       <div class="form-row m-1">
         <div class="form-group col-lg-12">
           <button id="start" class="btn btn-primary col-lg-1">Start</button>
-          <button id="pause" class="btn btn-primary col-lg-1">Pause</button>
+          <button id="pause" class="btn btn-primary col-lg-1" disabled>Pause</button>
           <button id="clear" class="btn btn-primary col-lg-1">Clear</button>
+          <button id="random" class="btn btn-primary col-lg-1">Random</button>
         </div>
       </div>
 
@@ -45,13 +46,15 @@
         <div class="form-group col-lg-5">
           <label for="width">Width:</label>
           <input type="text" class="form-control" name="width" id="width" value="60" aria-describedby="widthHelpId">
-          <small id="widthHelpId" class="form-text text-muted">Must be at least 10</small>
+          <small id="widthHelpId" class="form-text text-muted">The width of the game field - must be at least
+            10.</small>
         </div>
 
         <div class="form-group col-lg-5">
           <label for="height">Height:</label>
           <input type="text" class="form-control" name="height" id="height" value="25" aria-describedby="heightHelpId">
-          <small id="heightHelpId" class="form-text text-muted">Must be at least 10</small>
+          <small id="heightHelpId" class="form-text text-muted">The height of the game field - must be at least
+            10.</small>
         </div>
 
         <button id="setSize" class="btn btn-primary col-lg-1">Set Size</button>
@@ -67,6 +70,17 @@
       </div>
 
       <div class="form-row m-1">
+        <div class="form-group col-lg-5">
+          <label for="speed">Wait time to next generation in ms:</label>
+          <input type="text" class="form-control" name="speed" id="speed" value="0" aria-describedby="speedHelpId">
+          <small id="speedHelpId" class="form-text text-muted">The wait time to the next generation in
+            milliseconds.</small>
+        </div>
+
+        <button id="setSpeed" class="btn btn-primary col-lg-1">Set Speed</button>
+      </div>
+
+      <div class="form-row m-1">
         <div class="form-group col-lg-12">
           <label>Generation: </label>
           <label id="generation">1</label>
@@ -74,25 +88,51 @@
       </div>
     </div>
 
-    <cgol-pitch id="cgol" width="60" height="25" start pause clear level></cgol-pitch>
+    <cgol-pitch id="cgol" width="60" height="25" speed="0" start pause clear level random></cgol-pitch>
   </main>
 
   <script>
+    // variables
     let width = (document.getElementById("width")).value;
     let height = (document.getElementById("height")).value;
+    let speed = (document.getElementById("speed")).value;
 
+    // react to events of cgol-pitch
     document.getElementsByTagName("cgol-pitch")[0].addEventListener("generationUpdatedEvent", (e) => {
       document.getElementById("generation").textContent = e.detail;
     });
 
     document.getElementsByTagName("cgol-pitch")[0].addEventListener("widthUpdatedEvent", (e) => {
-      (document.getElementById("width")).value = e.detail;
+      document.getElementById("width").value = e.detail;
     });
 
     document.getElementsByTagName("cgol-pitch")[0].addEventListener("heightUpdatedEvent", (e) => {
-      (document.getElementById("height")).value = e.detail;
+      document.getElementById("height").value = e.detail;
     });
 
+    document.getElementsByTagName("cgol-pitch")[0].addEventListener("runningStartedEvent", (e) => {
+      document.getElementById("start").setAttribute("disabled", true);
+      document.getElementById("pause").removeAttribute("disabled");
+    });
+
+    document.getElementsByTagName("cgol-pitch")[0].addEventListener("runningStoppedEvent", (e) => {
+      document.getElementById("start").removeAttribute("disabled");
+      document.getElementById("pause").setAttribute("disabled", true);
+    });
+
+    document.getElementsByTagName("cgol-pitch")[0].addEventListener("speedUpdatedEvent", (e) => {
+      document.getElementById("speed").value = e.detail;
+      document.getElementById("setSpeed").setAttribute("disabled", true);
+    });
+
+    // control change events
+    (function () {
+      $('#speed').on('change textInput input', function () {
+        document.getElementById("setSpeed").removeAttribute("disabled");
+      });
+    }());
+
+    // control click events
     document.getElementById("setSize").onclick = setSize;
 
     function setSize() {
@@ -109,6 +149,17 @@
       }
     }
 
+    document.getElementById("setSpeed").onclick = setSpeed;
+
+    function setSpeed() {
+      let cgol = document.getElementById("cgol");
+
+      if (this.speed !== (document.getElementById("speed")).value) {
+        speed = (document.getElementById("speed")).value;
+        cgol.setAttribute("speed", speed);
+      }
+    }
+
     document.getElementById("start").onclick = function () { document.getElementById("cgol").setAttribute("start", null); };
     document.getElementById("pause").onclick = function () { document.getElementById("cgol").setAttribute("pause", null); };
     document.getElementById("clear").onclick = function () { document.getElementById("cgol").setAttribute("clear", null); };
@@ -117,7 +168,9 @@
       let levelText = (document.getElementById("loadLevelTextArea")).value;
       document.getElementById("cgol").setAttribute("level", levelText);
     };
-</script>
+
+    document.getElementById("random").onclick = function () { document.getElementById("cgol").setAttribute("random", null); };
+  </script>
 </body>
 
 </html>

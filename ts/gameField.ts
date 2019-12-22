@@ -22,6 +22,8 @@ class GameField extends HTMLElement {
 
   private initialized: boolean;
 
+  private speed: number;
+
   constructor() {
     super();
     this.columns = 60;
@@ -34,6 +36,7 @@ class GameField extends HTMLElement {
     this.running = false;
     this.generation = 1;
     this.initialized = false;
+    this.speed = 0;
   }
 
   public connectedCallback() {
@@ -55,27 +58,33 @@ class GameField extends HTMLElement {
       switch (name) {
         case "width":
           if ((newValue !== oldValue) && (newValue !== this.columns)) {
-            this.columns = Math.max(10, newValue);
-            this.widthUpdated();
+            this.widthUpdated(newValue);
           }
           break;
         case "height":
           if ((newValue !== oldValue) && (newValue !== this.rows)) {
-            this.rows = Math.max(10, newValue);
-            this.heightUpdated();
+            this.heightUpdated(newValue);
           }
           break;
         case "start":
-          this.start();
+          this.doStart();
           break;
         case "pause":
-          this.pause();
+          this.doPause();
           break;
         case "clear":
-          this.clear();
+          this.doClear();
           break;
         case "level":
           this.loadLevel(newValue);
+          break;
+        case "random":
+          this.randomize();
+          break;
+        case "speed":
+          if ((newValue !== oldValue) && (newValue !== this.speed)) {
+            this.speedUpdated(newValue);
+          }
           break;
         default:
           break;
@@ -84,7 +93,7 @@ class GameField extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ["width", "height", "start", "pause", "clear", "level"];
+    return ["width", "height", "start", "pause", "clear", "level", "random", "speed"];
   }
 
   private createGameField(): number[][] {
@@ -100,20 +109,50 @@ class GameField extends HTMLElement {
     return arr;
   }
 
-  private widthUpdated() {
+  private widthUpdated(newWidth: string) {
+    const width = parseInt(newWidth, 10);
+
+    if (!isNaN(width)) {
+      const columns = Math.max(10, width);
+      if (columns !== this.columns) {
+        this.columns = columns;
+        this.sizeUpdated();
+      }
+    }
+
     this.dispatchEvent(new CustomEvent("widthUpdatedEvent", { detail: this.columns }));
-    this.sizeUpdated();
   }
 
-  private heightUpdated() {
+  private heightUpdated(newHeight: string) {
+    const height = parseInt(newHeight, 10);
+
+    if (!isNaN(height)) {
+      const rows = Math.max(10, height);
+      if (rows !== this.rows) {
+        this.rows = rows;
+        this.sizeUpdated();
+      }
+    }
+
     this.dispatchEvent(new CustomEvent("heightUpdatedEvent", { detail: this.rows }));
-    this.sizeUpdated();
+  }
+
+  private speedUpdated(newSpeed: any) {
+    const speed = parseInt(newSpeed, 10);
+    if (!isNaN(speed)) {
+      if (speed !== this.speed) {
+        this.speed = speed;
+      }
+    }
+    this.dispatchEvent(new CustomEvent("speedUpdatedEvent", { detail: this.speed }));
   }
 
   private sizeUpdated() {
     this.gameField = this.createGameField();
+    this.generation = 1;
     this.size = Math.min(this.viewportWidth / this.columns, this.viewportHeight / this.rows);
     this.createShadowDom();
+    this.dispatchEvent(new CustomEvent("generationUpdatedEvent", { detail: this.generation }));
   }
 
   private setViewportValues() {
@@ -199,6 +238,10 @@ class GameField extends HTMLElement {
       rowElem.className = "row";
       for (let column = 0; column < this.columns; column++) {
         const cellElem = document.createElement("div");
+
+        // finding this cell again is much faster if the elements are in one attribute
+        // and even faster if they are in the id.
+        // By using two attributes or something else than the id, everything crawls to a stop.
         cellElem.setAttribute("id", `${row},${column}`);
 
         switch (this.gameField[row][column]) {
@@ -229,50 +272,43 @@ class GameField extends HTMLElement {
     return gridElem;
   }
 
-  private start() {
+  private doStart() {
     if (!this.running) {
       this.running = true;
+      this.dispatchEvent(new CustomEvent("runningStartedEvent", { detail: this.running }));
       this.execute();
     }
   }
 
-  private pause() {
+  private doPause() {
     this.running = false;
+    this.dispatchEvent(new CustomEvent("runningStoppedEvent", { detail: this.running }));
   }
 
-  private clear() {
+  private doClear() {
     this.running = false;
     this.gameField = this.createGameField();
     this.generation = 1;
-    this.dispatchEvent(new CustomEvent("generationUpdatedEvent", { detail: this.generation }));
     this.updateField();
+    this.dispatchEvent(new CustomEvent("generationUpdatedEvent", { detail: this.generation }));
+    this.dispatchEvent(new CustomEvent("runningStoppedEvent", { detail: this.running }));
   }
 
   private loadLevel(level: string) {
     const levelArray = level.split("\n");
 
-    let rows = levelArray.length;
+    const rows = levelArray.length;
     let columns = 0;
 
     for (let row = 0; row < levelArray.length; row++) {
-      levelArray[row] = levelArray[row].replace(/\s/g, ""); // remove spaces, write zero instead.
+      levelArray[row] = levelArray[row].replace(/\s/g, "");
       columns = Math.max(columns, levelArray[row].length);
     }
 
-    rows = Math.max(rows, 10);
-    columns = Math.max(columns, 10);
+    this.heightUpdated(rows.toString());
+    this.widthUpdated(columns.toString());
 
-    if (rows !== this.rows) {
-      this.rows = rows;
-      this.heightUpdated();
-    }
-
-    if (columns !== this.columns) {
-      this.columns = columns;
-      this.widthUpdated();
-    }
-
-    this.clear();
+    this.doClear();
 
     for (let row = 0; row < levelArray.length; row++) {
       levelArray[row] += "0".repeat(columns - levelArray[row].length);
@@ -288,6 +324,18 @@ class GameField extends HTMLElement {
     this.createShadowDom();
   }
 
+  private randomize() {
+    this.doClear();
+
+    for (let row: number = 0; row < this.rows; row++) {
+      for (let column: number = 0; column < this.columns; column++) {
+        this.gameField[row][column] = Math.round(Math.random());
+      }
+    }
+
+    this.updateField();
+  }
+
   private execute() {
     if (this.running) {
       const nextGenerationGameField = this.calculateNextGenerationGameField();
@@ -300,7 +348,7 @@ class GameField extends HTMLElement {
 
       setTimeout(function() {
         this.execute();
-      }.bind(this), 0);
+      }.bind(this), this.speed);
     }
   }
 
@@ -318,7 +366,7 @@ class GameField extends HTMLElement {
     }
 
     if (countDifferentCells === 0) {
-      this.pause();
+      this.doPause();
     }
 
     return nextGenerationGameField;
@@ -367,7 +415,11 @@ class GameField extends HTMLElement {
   private updateField() {
     for (let row = 0; row < this.rows; row++) {
       for (let column = 0; column < this.columns; column++) {
+
+        // finding this cell is much faster if the elements are in one attribute and even faster if they are in the id.
+        // By using two attributes or something else than the id, everything crawls to a stop.
         const cell = this.shadowRoot.getElementById(`${row},${column}`);
+
         if (this.gameField[row][column] === FieldState.Unset) {
           cell.setAttribute("class", "cell unset");
         } else if (this.gameField[row][column] === FieldState.Alive) {
