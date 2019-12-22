@@ -67,7 +67,7 @@ gulp.task('minify-css',() => {
 gulp.task('html', () => {
   return gulp.src('./index.html')
     .pipe(validator({
-      Werror: true
+      Werror: false
     }));
 });
 gulp.task('ts-to-min-js', gulp.series('tslint', 'ts-to-js', 'minify-js', 'eslint'));

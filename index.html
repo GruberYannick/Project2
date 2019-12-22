@@ -33,6 +33,7 @@
 <body>
   <main>
     <div>
+      <h1 class="m-1">Conway's Game Of Life</h1>
       <div class="form-row m-1">
         <div class="form-group col-lg-12">
           <button id="start" class="btn btn-primary col-lg-1">Start</button>
@@ -88,7 +89,31 @@
       </div>
     </div>
 
-    <cgol-pitch id="cgol" width="60" height="25" speed="0" start pause clear level random></cgol-pitch>
+    <div class="form-row m-1">
+      <div class="form-group col-lg-5">
+        <label for="unsetColor">Unset color:</label>
+        <input type="color" class="form-control" name="unsetColor" id="unsetColor" value="#ffffff" aria-describedby="unsetColorHelpId">
+        <small id="unsetColorHelpId" class="form-text text-muted">The color of unset cells.</small>
+      </div>
+    </div>
+
+    <div class="form-row m-1">
+      <div class="form-group col-lg-5">
+        <label for="aliveColor">Alive color:</label>
+        <input type="color" class="form-control" name="aliveColor" id="aliveColor" value="#00008b" aria-describedby="aliveColorHelpId">
+        <small id="aliveColorHelpId" class="form-text text-muted">The color of alive cells.</small>
+      </div>
+    </div>
+
+    <div class="form-row m-1">
+      <div class="form-group col-lg-5">
+        <label for="deadColor">Dead color:</label>
+        <input type="color" class="form-control" name="deadColor" id="deadColor" value="#90ee90" aria-describedby="deadColorHelpId">
+        <small id="deadColorHelpId" class="form-text text-muted">The color of dead cells.</small>
+      </div>
+    </div>
+
+    <cgol-pitch id="cgol" width="60" height="25" speed="0" unset_color="#ffffff" alive_color="#00008b" dead_color="#90ee90" start pause clear level random></cgol-pitch>
   </main>
 
   <script>
@@ -131,6 +156,22 @@
         document.getElementById("setSpeed").removeAttribute("disabled");
       });
     }());
+
+    document.getElementById("unsetColor").addEventListener("change", unsetColorChanged);
+    document.getElementById("aliveColor").addEventListener("change", aliveColorChanged);
+    document.getElementById("deadColor").addEventListener("change", deadColorChanged);
+
+    function unsetColorChanged(event) {
+      document.getElementById("cgol").setAttribute("unset_color", event.target.value);
+    }
+
+    function aliveColorChanged(event) {
+      document.getElementById("cgol").setAttribute("alive_color", event.target.value);
+    }
+
+    function deadColorChanged(event) {
+      document.getElementById("cgol").setAttribute("dead_color", event.target.value);
+    }
 
     // control click events
     document.getElementById("setSize").onclick = setSize;

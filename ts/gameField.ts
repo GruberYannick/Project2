@@ -24,6 +24,10 @@ class GameField extends HTMLElement {
 
   private speed: number;
 
+  private unsetColor: string;
+  private aliveColor: string;
+  private deadColor: string;
+
   constructor() {
     super();
     this.columns = 60;
@@ -37,6 +41,9 @@ class GameField extends HTMLElement {
     this.generation = 1;
     this.initialized = false;
     this.speed = 0;
+    this.unsetColor = "#ffffff";
+    this.aliveColor = "#00008b";
+    this.deadColor = "#90ee90";
   }
 
   public connectedCallback() {
@@ -57,14 +64,10 @@ class GameField extends HTMLElement {
     if (this.initialized) {
       switch (name) {
         case "width":
-          if ((newValue !== oldValue) && (newValue !== this.columns)) {
-            this.widthUpdated(newValue);
-          }
+          this.widthUpdated(newValue);
           break;
         case "height":
-          if ((newValue !== oldValue) && (newValue !== this.rows)) {
-            this.heightUpdated(newValue);
-          }
+          this.heightUpdated(newValue);
           break;
         case "start":
           this.doStart();
@@ -82,9 +85,16 @@ class GameField extends HTMLElement {
           this.randomize();
           break;
         case "speed":
-          if ((newValue !== oldValue) && (newValue !== this.speed)) {
-            this.speedUpdated(newValue);
-          }
+          this.speedUpdated(newValue);
+          break;
+        case "unset_color":
+          this.unsetColorUpdated(newValue);
+          break;
+        case "alive_color":
+          this.aliveColorUpdated(newValue);
+          break;
+        case "dead_color":
+          this.deadColorUpdated(newValue);
           break;
         default:
           break;
@@ -93,7 +103,7 @@ class GameField extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ["width", "height", "start", "pause", "clear", "level", "random", "speed"];
+    return ["width", "height", "start", "pause", "clear", "level", "random", "speed", "unset_color", "alive_color", "dead_color"];
   }
 
   private createGameField(): number[][] {
@@ -153,6 +163,69 @@ class GameField extends HTMLElement {
     this.size = Math.min(this.viewportWidth / this.columns, this.viewportHeight / this.rows);
     this.createShadowDom();
     this.dispatchEvent(new CustomEvent("generationUpdatedEvent", { detail: this.generation }));
+  }
+
+  private unsetColorUpdated(unsetColor: string) {
+    this.unsetColor = unsetColor;
+    this.updateShadowCss();
+  }
+
+  private aliveColorUpdated(aliveColor: string) {
+    this.aliveColor = aliveColor;
+    this.updateShadowCss();
+  }
+
+  private deadColorUpdated(deadColor: string) {
+    this.deadColor = deadColor;
+    this.updateShadowCss();
+  }
+
+  private updateShadowCss() {
+    const shadow = this.shadowRoot;
+    const childNodes = Array.from(shadow.childNodes);
+
+    childNodes.forEach((childNode) => {
+      if (childNode.nodeName === "STYLE") {
+        childNode.textContent = `
+        .cell {
+          box-sizing: border-box;
+          width: ${this.size}px;
+          height: ${this.size}px;
+          background-color: white;
+          float: left;
+          background-clip: content-box;
+          padding: 1px;
+        }
+
+        .row {
+          box-sizing: border-box;
+          width: ${this.size * this.columns}px;
+          height: ${this.size}px;
+          clear: both;
+          float: left;
+        }
+
+        .grid {
+          box-sizing: border-box;
+          width: ${this.size * this.columns}px;
+          height: ${this.size * this.rows}px;
+          margin: auto;
+        }
+
+        .unset {
+          background-color: ${this.unsetColor};
+        }
+
+        .alive {
+          background-color: ${this.aliveColor};
+        }
+
+        .dead {
+          background-color: ${this.deadColor};
+        }
+        `;
+      }
+    });
   }
 
   private setViewportValues() {
@@ -217,16 +290,17 @@ class GameField extends HTMLElement {
     }
 
     .unset {
-      background-color: white;
+      background-color: ${this.unsetColor};
     }
 
     .alive {
-      background-color: darkblue;
+      background-color: ${this.aliveColor};
     }
 
     .dead {
-      background-color: lightgreen;
+      background-color: ${this.deadColor};
     }
+    </style>
     `;
   }
 
