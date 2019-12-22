@@ -47,8 +47,6 @@ class GameField extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this.createShadowDom();
 
-    this.viewportUpdated();
-
     this.initialized = true;
   }
 
@@ -76,6 +74,9 @@ class GameField extends HTMLElement {
         case "clear":
           this.clear();
           break;
+        case "level":
+          this.loadLevel(newValue);
+          break;
         default:
           break;
       }
@@ -83,7 +84,7 @@ class GameField extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ["width", "height", "start", "pause", "clear"];
+    return ["width", "height", "start", "pause", "clear", "level"];
   }
 
   private createGameField(): number[][] {
@@ -113,7 +114,6 @@ class GameField extends HTMLElement {
     this.gameField = this.createGameField();
     this.size = Math.min(this.viewportWidth / this.columns, this.viewportHeight / this.rows);
     this.createShadowDom();
-    this.viewportUpdated();
   }
 
   private setViewportValues() {
@@ -147,6 +147,7 @@ class GameField extends HTMLElement {
     this.shadowRoot.innerHTML = this.createShadowCss();
     const gridElem = this.createShadowGameField();
     this.shadowRoot.appendChild(gridElem);
+    this.viewportUpdated();
   }
 
   private createShadowCss() {
@@ -245,6 +246,46 @@ class GameField extends HTMLElement {
     this.generation = 1;
     this.dispatchEvent(new CustomEvent("generationUpdatedEvent", { detail: this.generation }));
     this.updateField();
+  }
+
+  private loadLevel(level: string) {
+    const levelArray = level.split("\n");
+
+    let rows = levelArray.length;
+    let columns = 0;
+
+    for (let row = 0; row < levelArray.length; row++) {
+      levelArray[row] = levelArray[row].replace(/\s/g, ""); // remove spaces, write zero instead.
+      columns = Math.max(columns, levelArray[row].length);
+    }
+
+    rows = Math.max(rows, 10);
+    columns = Math.max(columns, 10);
+
+    if (rows !== this.rows) {
+      this.rows = rows;
+      this.heightUpdated();
+    }
+
+    if (columns !== this.columns) {
+      this.columns = columns;
+      this.widthUpdated();
+    }
+
+    this.clear();
+
+    for (let row = 0; row < levelArray.length; row++) {
+      levelArray[row] += "0".repeat(columns - levelArray[row].length);
+      for (let column = 0; column < columns; column++) {
+        if (parseInt(levelArray[row][column], 10) === FieldState.Alive) {
+          this.gameField[row][column] = FieldState.Alive;
+        } else {
+          this.gameField[row][column] = FieldState.Unset;
+        }
+      }
+    }
+
+    this.createShadowDom();
   }
 
   private execute() {
